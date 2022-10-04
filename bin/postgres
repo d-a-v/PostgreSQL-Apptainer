@@ -20,7 +20,7 @@ function run_container() {
 
 function run_container_with_bind() {
 	DB=$1; shift
-	singularity exec \
+	singularity exec --no-home --bind ${PWD}:${PWD} \
 	-B $DB/var/run:/var/run/postgresql \
 	-B $DB/var/lib:/var/lib/postgresql/cur/main \
 	-B $DB/var/log:/var/log/postgresql/cur/main \
@@ -65,8 +65,8 @@ function pg_initdb() {
 		chmod -R go-rwx ${OPT}/etc
 
 		cat <<-EOF
-		Using this contnairized environment, you can run
-			${0} run ${OPT}
+		Using this containerized environment,
+		you can run:	${0} run ${OPT}
 		EOF
 	fi
 }
@@ -119,6 +119,10 @@ function pg_tune_usage() {
 	cat <<-EOF 2>/dev/null
 	usage: postgres tune <DATA_DIR> [OPTS...]
 	Tune database configuration.
+
+	example:
+		bin/postgres tune mydb --help
+		bin/postgres tune mydb -yes
 	EOF
 }
 
