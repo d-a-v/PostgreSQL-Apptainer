@@ -14,7 +14,7 @@ IMG=${BIN_DIR}/postgres.simg
 set -e
 
 function run_container() {
-	singularity exec $IMG "$@"
+	singularity exec --no-home --bind ${PWD}:${PWD} $IMG "$@"
 }
 
 
