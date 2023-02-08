@@ -1,0 +1,18 @@
+#!/bin/sh
+
+db=${1}
+
+if [ -z "${db}" -o ! -d ${db} ]; then
+    echo "syntax: $0 <db-directory>"
+    exit 1
+fi
+
+shift
+
+if screen -list|grep psql; then
+    echo not starting a new server
+else
+    echo "starting inside screen:"
+    screen -L -S psql -d -m bin/postgres run ${db}
+    screen -list
+fi
