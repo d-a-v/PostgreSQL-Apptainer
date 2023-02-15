@@ -1,0 +1,19 @@
+#!/bin/sh
+
+db="$1"
+
+if [ -z "${db}" ]; then
+    echo "usage: $0 <dbname=directory>"
+    exit 1
+fi
+
+set -xe
+
+./bin/postgres initdb ${db}
+yes | ./bin/postgres tune ${db}
+./bin/postgres run ${db} &
+sleep 2
+echo "create database ${db}" | ./bin/postgres admin ${db}
+kill $(cat ${db}/var/run/*.pid)
+sleep 2
+echo "done"
