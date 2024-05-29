@@ -9,8 +9,23 @@ From: ubuntu:22.04   # jammy
 	export TIMESCALEDB_VERSION=2
 	export POSTGRESQL_VERSION=14
 
+    ###################################################
 	export DEBIAN_FRONTEND=noninteractive
-	apt update
+    export LANG=C
+    export LC_ALL=C
+    if [ -z "${APT_PROXY}" ]; then
+        echo "====================================="
+        echo "Before building, you should apt install apt-cacher-ng"
+        echo "and export APPTAINERENV_APT_PROXY=http://\$(hostname):3142"
+        echo "====================================="
+        sleep 10
+    else
+        echo "Using APT proxy: ${APT_PROXY}"
+        echo "Acquire::http::Proxy \"${APT_PROXY}\";" > /etc/apt/apt.conf.d/00proxy
+    fi
+    apt -y update
+    ###################################################
+
 	apt install -y curl openssh-client
 
 	curl -s https://packagecloud.io/install/repositories/timescale/timescaledb/script.deb.sh | bash
