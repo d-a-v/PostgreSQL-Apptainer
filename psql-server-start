@@ -1,5 +1,7 @@
 #!/bin/sh
 
+pwd=$(cd ${0%/*}; pwd)
+
 db=${1}
 
 if [ -z "${db}" -o ! -d ${db} ]; then
@@ -13,6 +15,6 @@ if screen -list|grep psql; then
     echo not starting a new server
 else
     echo "starting inside screen:"
-    screen -L -S psql -d -m bin/postgres run ${db}
+    screen -L -S psql -d -m ${pwd}/bin/postgres run ${db}
     screen -list
 fi

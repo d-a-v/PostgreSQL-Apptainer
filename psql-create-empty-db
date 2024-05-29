@@ -1,5 +1,7 @@
 #!/bin/sh
 
+pwd=$(cd ${0%/*}; pwd)
+
 db="$1"
 
 if [ -z "${db}" ]; then
@@ -9,11 +11,11 @@ fi
 
 set -xe
 
-./bin/postgres initdb ${db}
-yes | ./bin/postgres tune ${db}
-./bin/postgres run ${db} &
+${pwd}/bin/postgres initdb ${db}
+yes | ${pwd}/bin/postgres tune ${db}
+${pwd}/bin/postgres run ${db} &
 sleep 2
-echo "create database ${db}" | ./bin/postgres admin ${db}
+echo "create database ${db}" | ${pwd}/bin/postgres admin ${db}
 kill $(cat ${db}/var/run/*.pid)
 sleep 2
 echo "done"
