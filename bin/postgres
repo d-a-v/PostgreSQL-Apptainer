@@ -180,6 +180,47 @@ function pg_run_help() {
 }
 
 
+function pg_client() {
+	if [ $# -eq 0 ]
+	then
+		pg_client_usage
+		return 1
+	fi
+	OPT="$1"; shift
+	case "${OPT}" in
+		-h | --help)
+			pg_client_help
+			return 1
+			;;
+		*)
+			;;
+	esac
+	run_container_with_bind "$OPT" psql "$OPT" "$@"
+}
+
+
+function pg_client_usage() {
+# usage: pg_client_usage
+# Print usage statement for 'postgres run'
+	cat <<-EOF 2>/dev/null
+	usage: postgres client <DATA_DIR> [OPTS...]
+	Run PostgreSQL client.
+	EOF
+}
+
+
+function pg_client_help() {
+# usage: pg_client_help
+# Print full help statement for 'postgres client'
+	pg_client_usage
+	cat <<-EOF 2>/dev/null
+
+	options:
+	-h, --help         Show this message and exit.
+	EOF
+}
+
+
 function pg_admin() {
 	if [ $# -eq 0 ]
 	then
@@ -246,6 +287,7 @@ function pg_help() {
 	tune               Tune configuration.
 	run                Run PostgreSQL server.
 	admin              Run PostgreSQL admin client.
+	client             Run PostgreSQL client.
 
 	options:
 	-h, --help         Show this message and exit.
@@ -263,7 +305,7 @@ function main() {
 	cmd=$1
 	shift
 	case $cmd in
-		(initdb|tune|run|admin)
+		(initdb|tune|run|admin|client)
 			pg_$cmd "$@"
 			;;
 		(-h|--help)
