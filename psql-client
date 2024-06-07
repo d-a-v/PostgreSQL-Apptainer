@@ -1,0 +1,14 @@
+#!/bin/sh
+
+pwd=$(cd ${0%/*}; pwd)
+
+db=${1}
+
+if [ -z "${db}" -o ! -d ${db} ]; then
+    echo "syntax: $0 <db-directory> [ psql commands... ]"
+    exit 1
+fi
+
+shift
+
+${pwd}/bin/postgres client ${db} "$@"
