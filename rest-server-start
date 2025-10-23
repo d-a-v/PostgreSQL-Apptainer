@@ -1,0 +1,27 @@
+#!/bin/sh
+
+pwd=$(cd ${0%/*}; pwd)
+
+db=${1}
+
+if [ -z "${db}" -o ! -d "${db}" ]; then
+    echo "syntax: $0 <existing-db-directory>"
+    exit 1
+fi
+
+if [ ! -r ${db}/etc/postgrest/postgrest.conf ]; then
+    echo "configuration file ${db}/etc/postgrest/postgrest.conf not found, check ${db}/etc/postgrest/postgrest.conf-example"
+    mkdir -p ${db}/etc/postgrest
+    exec ${pwd}/bin/postgres rest ${db} -e > ${db}/etc/postgrest/postgrest.conf-example
+fi
+
+shift
+
+if tmux ls|grep pgrest; then
+    echo not starting a new server
+else
+    echo "starting inside tmux:"
+    set -x
+    tmux new -s pgrest -d bash -c "exec ${pwd}/bin/postgres rest ${db} /etc/postgrest/postgrest.conf"
+    tmux ls | grep pgrest
+fi

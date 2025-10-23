@@ -5,7 +5,12 @@ pwd=$(cd ${0%/*}; pwd)
 db="$1"
 
 if [ -z "${db}" ]; then
-    echo "usage: $0 <dbname=directory>"
+    echo "usage: $0 <dbname=directory>" 1>&2
+    exit 1
+fi
+
+if [ -d "${db}" ]; then
+    echo "$0: ${db} already exists" 1>&2
     exit 1
 fi
 

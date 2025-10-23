@@ -4,17 +4,18 @@ pwd=$(cd ${0%/*}; pwd)
 
 db=${1}
 
-if [ -z "${db}" -o ! -d ${db} ]; then
-    echo "syntax: $0 <db-directory>"
+if [ -z "${db}" -o ! -d "${db}" ]; then
+    echo "syntax: $0 <existing-db-directory>"
     exit 1
 fi
 
 shift
 
-if screen -list|grep psql; then
+if tmux ls|grep psqldb; then
     echo not starting a new server
 else
-    echo "starting inside screen:"
-    screen -L -S psql -d -m ${pwd}/bin/postgres run ${db}
-    screen -list
+    echo "starting inside tmux:"
+    set +x
+    tmux new -s psqldb -d bash -c "exec ${pwd}/bin/postgres run ${db}"
+    tmux ls | grep psqldb
 fi

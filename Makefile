@@ -1,14 +1,11 @@
 
-IMAGE=bin/postgres.simg
+IMAGE=bin/postgres.sif
 
-default: apptainer
+default: image
 
 image: ${IMAGE}
-${IMAGE}: Singularity
-	sudo singularity build $(@).partial $(<)
-	mv $(@).partial $(@)
 
-apptainer: bin/apptainer-temp.simg
-bin/apptainer-temp.simg: Singularity
-	APPTAINERENV_APT_PROXY=http://$(shell hostname):3142 apptainer build $(@).partial $(<)
-	mv $(@).partial ${IMAGE}
+${IMAGE}: Apptainer
+	#APPTAINERENV_APT_PROXY=http://$(shell hostname):3142 apptainer build $(@).temp $(<)
+	apptainer build $(@).temp $(<)
+	mv $(@).temp ${IMAGE}

@@ -9,23 +9,24 @@
 
 BIN_DIR=${0%/*}
 PREFIX=${BIN_DIR%/*}
-IMG=${BIN_DIR}/postgres.simg
+IMG=${BIN_DIR}/postgres.sif
 
 set -e
 
 function run_container() {
-	singularity exec --no-home --bind ${PWD}:${PWD} $IMG "$@"
+	apptainer exec --no-home --bind ${PWD}:${PWD} $IMG "$@"
 }
 
 
 function run_container_with_bind() {
 	DB=$1; shift
-	singularity exec --no-home --bind ${PWD}:${PWD} \
-	-B $DB/var/run:/var/run/postgresql \
-	-B $DB/var/lib:/var/lib/postgresql/cur/main \
-	-B $DB/var/log:/var/log/postgresql/cur/main \
-	-B $DB/etc/postgresql:/etc/postgresql/cur/main \
-	-B $DB/etc/ssl:/etc/ssl \
+	apptainer exec --no-home --bind ${PWD}:${PWD} \
+	--bind $DB/var/run:/var/run/postgresql \
+	--bind $DB/var/lib:/var/lib/postgresql/cur/main \
+	--bind $DB/var/log:/var/log/postgresql/cur/main \
+	--bind $DB/etc/postgresql:/etc/postgresql/cur/main \
+	--bind $DB/etc/ssl:/etc/ssl \
+	--bind $DB/etc/postgrest:/etc/postgrest \
 	$IMG "$@"
 }
 
@@ -47,7 +48,7 @@ function pg_initdb() {
 	esac
 	if [ -d "${OPT}" ]
 	then
-		echo "Error: cannot initialize existing data directory (${OPT})"
+		echo "Error: cannot initialize existing data directory (${OPT})" 1>&2
 		return 1
 	else
 		mkdir -p ${OPT}/etc/ssl/certs
@@ -237,7 +238,7 @@ function pg_admin() {
 			;;
 	esac
 	port=$(grep ^port ${OPT}/etc/postgresql/postgresql.conf | awk '{print $3;}')
-	echo "using command line: psql postgres -p ${port} $@"
+	echo "using command line: psql postgres -p ${port} $@" 1>&2
 	run_container_with_bind "$OPT" /usr/lib/postgresql/cur/bin/psql postgres -p ${port} "$@"
 }
 
@@ -264,8 +265,54 @@ function pg_admin_help() {
 }
 
 
+
+function pg_rest() {
+	if [ $# -eq 0 ]
+	then
+		pg_rest_usage
+		return 1
+	fi
+	OPT="$1"; shift
+	case "${OPT}" in
+		-h | --help)
+			pg_rest_help
+			return 1
+			;;
+		*)
+			;;
+	esac
+	echo "using command line: postgrest $@" 1>&2
+	run_container_with_bind "$OPT" /usr/local/bin/postgrest "$@"
+}
+
+
+function pg_rest_usage() {
+# usage: pg_rest_usage
+# Print usage statement for 'postgresd'
+	cat <<-EOF 2>/dev/null
+	usage: postgresd <conf-file>
+	Run PostgREST web-server.
+	EOF
+}
+
+
+function pg_rest_help() {
+# usage: pg_rest_help
+# Print full help statement for 'postgres admin'
+	pg_rest_usage
+	cat <<-EOF 2>/dev/null
+
+	options:
+	-h, --help         Show this message and exit.
+	EOF
+}
+
+
+
+
+
 function pg_version() {
-	singularity --version
+	apptainer --version
 	run_container postgres --version
 }
 
@@ -288,6 +335,7 @@ function pg_help() {
 	run                Run PostgreSQL server.
 	admin              Run PostgreSQL admin client.
 	client             Run PostgreSQL client.
+	rest               Run PostgREST server
 
 	options:
 	-h, --help         Show this message and exit.
@@ -305,7 +353,7 @@ function main() {
 	cmd=$1
 	shift
 	case $cmd in
-		(initdb|tune|run|admin|client)
+		(initdb|tune|run|admin|client|rest)
 			pg_$cmd "$@"
 			;;
 		(-h|--help)
@@ -315,7 +363,7 @@ function main() {
 			pg_version
 			;;
 		*)
-			echo "Error: $cmd is not a subcommand"
+			echo "Error: $cmd is not a subcommand" 1>&2
 			;;
 	esac
 	return 0

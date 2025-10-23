@@ -1,0 +1,52 @@
+Bootstrap: docker
+From: debian:trixie
+
+%labels
+	Maintainer gauchard@laas.fr
+
+%post
+	export TIMESCALEDB_VERSION=2
+	export POSTGRESQL_VERSION=17
+	export POSTGREST_VERSION=13.0.7
+
+    ###################################################
+	export DEBIAN_FRONTEND=noninteractive
+    export LANG=C
+    export LC_ALL=C
+    if [ -z "${APT_PROXY}" ]; then
+        true "====================================="
+        true "Before building, you should apt install apt-cacher-ng"
+        true "and export APPTAINERENV_APT_PROXY=http://\$(hostname):3142"
+        true "(todo fix caching https)"
+        true "====================================="
+        sleep 2
+    else
+        true "Using APT proxy: ${APT_PROXY}"
+        echo "Acquire::http::Proxy \"${APT_PROXY}\";" > /etc/apt/apt.conf.d/00proxy
+    fi
+    apt -y update
+    ###################################################
+
+	apt install -y wget gpg lsb-release openssh-client
+
+	echo "deb https://packagecloud.io/timescale/timescaledb/debian/ $(lsb_release -c -s) main" | tee /etc/apt/sources.list.d/timescaledb.list
+	wget --quiet -O - https://packagecloud.io/timescale/timescaledb/gpgkey | gpg --dearmor -o /etc/apt/trusted.gpg.d/timescaledb.gpg
+	apt update
+	apt install -y timescaledb-${TIMESCALEDB_VERSION}-postgresql-${POSTGRESQL_VERSION}
+	wget -O - https://github.com/PostgREST/postgrest/releases/download/v${POSTGREST_VERSION}/postgrest-v${POSTGREST_VERSION}-linux-static-x86-64.tar.xz | (cd /usr/local/bin; tar xvfJ -)
+
+	ln -s /etc/postgresql/${POSTGRESQL_VERSION} /etc/postgresql/cur
+	ln -s /usr/lib/postgresql/${POSTGRESQL_VERSION} /usr/lib/postgresql/cur
+	ln -s /var/lib/postgresql/${POSTGRESQL_VERSION} /var/lib/postgresql/cur
+	mkdir -p /scratch /depot /apps
+	chmod -R +rx,o-rwx /etc/ssl/private
+	chmod -R +r,o-rwx /etc/postgresql
+
+%environment
+	export LANG=C
+	export LC_ALL=C
+	export PATH=$PATH:/usr/lib/postgresql/cur/bin
+
+%runscript
+    [ -r postgrestd.conf ] && postgresd postgrestd.conf &
+	postgres -c config_file=/etc/postgresql/cur/main/postgresql.conf "$@"
