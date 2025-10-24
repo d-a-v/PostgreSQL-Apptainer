@@ -11,7 +11,6 @@ fi
 
 if [ ! -r ${db}/etc/postgrest/postgrest.conf ]; then
     echo "configuration file ${db}/etc/postgrest/postgrest.conf not found, check ${db}/etc/postgrest/postgrest.conf-example"
-    mkdir -p ${db}/etc/postgrest
     exec ${pwd}/bin/postgres rest ${db} -e > ${db}/etc/postgrest/postgrest.conf-example
 fi
 

@@ -51,6 +51,7 @@ function pg_initdb() {
 		echo "Error: cannot initialize existing data directory (${OPT})" 1>&2
 		return 1
 	else
+		mkdir -p ${OPT}/etc/postgrest
 		mkdir -p ${OPT}/etc/ssl/certs
 		mkdir -p ${OPT}/etc/ssl/private
 		mkdir -p ${OPT}/var/lib
