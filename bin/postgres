@@ -267,6 +267,50 @@ function pg_admin_help() {
 
 
 
+function pg_dump() {
+	if [ $# -eq 0 ]
+	then
+		pg_dump_usage
+		return 1
+	fi
+	OPT="$1"; shift
+	case "${OPT}" in
+		-h | --help)
+			pg_dump_help
+			return 1
+			;;
+		*)
+			;;
+	esac
+	port=$(grep ^port ${OPT}/etc/postgresql/postgresql.conf | awk '{print $3;}')
+	echo "using command line: pg_dump -p ${port} \"$@\"" 1>&2
+	run_container_with_bind "$OPT" /usr/lib/postgresql/cur/bin/pg_dump -p ${port} "$@"
+}
+
+
+function pg_dump_usage() {
+# usage: pg_dump_usage
+# Print usage statement for 'postgres dump'
+	cat <<-EOF 2>/dev/null
+	usage: postgres dump <DATA_DIR> [OPTS...]
+	Run PostgreSQL server.
+	EOF
+}
+
+
+function pg_dump_help() {
+# usage: pg_dump_help
+# Print full help statement for 'postgres dump'
+	pg_dump_usage
+	cat <<-EOF 2>/dev/null
+
+	options:
+	-h, --help         Show this message and exit.
+	EOF
+}
+
+
+
 function pg_rest() {
 	if [ $# -eq 0 ]
 	then
@@ -299,7 +343,6 @@ function pg_rest_usage() {
 
 function pg_rest_help() {
 # usage: pg_rest_help
-# Print full help statement for 'postgres admin'
 	pg_rest_usage
 	cat <<-EOF 2>/dev/null
 
@@ -336,6 +379,7 @@ function pg_help() {
 	run                Run PostgreSQL server.
 	admin              Run PostgreSQL admin client.
 	client             Run PostgreSQL client.
+	dump               Run PostgreSQL dump.
 	rest               Run PostgREST server
 
 	options:
@@ -354,7 +398,7 @@ function main() {
 	cmd=$1
 	shift
 	case $cmd in
-		(initdb|tune|run|admin|client|rest)
+		(initdb|tune|run|admin|client|dump|rest)
 			pg_$cmd "$@"
 			;;
 		(-h|--help)
