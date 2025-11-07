@@ -37,7 +37,7 @@ function pg_initdb() {
 		pg_initdb_usage
 		return 1
 	fi
-	OPT="$1"; shift
+	OPT="${1%/*}"; shift
 	case "${OPT}" in
 		-h | --help)
 			pg_initdb_help
@@ -102,7 +102,7 @@ function pg_tune() {
 		pg_tune_usage
 		return 1
 	fi
-	OPT="$1"; shift
+	OPT="${1%/*}"; shift
 	case "${OPT}" in
 		-h | --help)
 			pg_tune_help
@@ -147,7 +147,7 @@ function pg_run() {
 		pg_run_usage
 		return 1
 	fi
-	OPT="$1"; shift
+	OPT="${1%/*}"; shift
 	case "${OPT}" in
 		-h | --help)
 			pg_run_help
@@ -188,7 +188,7 @@ function pg_client() {
 		pg_client_usage
 		return 1
 	fi
-	OPT="$1"; shift
+	OPT="${1%/*}"; shift
 	case "${OPT}" in
 		-h | --help)
 			pg_client_help
@@ -229,7 +229,7 @@ function pg_admin() {
 		pg_admin_usage
 		return 1
 	fi
-	OPT="$1"; shift
+	OPT="${1%/*}"; shift
 	case "${OPT}" in
 		-h | --help)
 			pg_admin_help
@@ -273,7 +273,7 @@ function pg_dump() {
 		pg_dump_usage
 		return 1
 	fi
-	OPT="$1"; shift
+	OPT="${1%/*}"; shift
 	case "${OPT}" in
 		-h | --help)
 			pg_dump_help
@@ -317,7 +317,7 @@ function pg_rest() {
 		pg_rest_usage
 		return 1
 	fi
-	OPT="$1"; shift
+	OPT="${1%/*}"; shift
 	case "${OPT}" in
 		-h | --help)
 			pg_rest_help
